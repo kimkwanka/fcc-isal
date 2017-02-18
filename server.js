@@ -2,14 +2,16 @@ const express = require('express');
 const path = require('path');
 const stylus = require('stylus');
 const axios = require('axios');
+const DB = require('./db.js');
 
 const app = express();
 
 const apiURL = 'https://api.imgur.com/3';
 const apiClientID = process.env.IMGURCLIENTID;
-console.log('ID???:', apiClientID);
 // Use process.env.PORT if set for Heroku, AWS, etc.
 const port = process.env.PORT || 8080;
+// Use process.env.MONGOLAB_URI if set for mLab
+const mongoURI = process.env.MONGOLAB_URI || 'mongodb://localhost:27017/shorturl';
 
 // Configure templating engine
 app.set('views', path.join(__dirname, '/views'));
@@ -38,7 +40,7 @@ app.get('/api/search/:term', (req, res) => {
   const term = req.params.term;
   const offset = req.query.offset || 0;
   const apiCall = `${apiURL}/gallery/search/top/?q=${term}&page=${offset}`;
-  console.log(apiClientID);
+
   axios({
     method: 'get',
     url: apiCall,
@@ -46,27 +48,46 @@ app.get('/api/search/:term', (req, res) => {
       Authorization: `Client-ID ${apiClientID}`,
     },
   }).then((apiRes) => {
+    DB.save({ term, when: Date.now() });
     if (apiRes.data.data.length > 0) {
-      const img = apiRes.data.data[0];
-      console.log(':O', apiRes.data.data);
-      res.json({ imgURL: img.link, pageURL: `https://imgur.com/${img.id}`, alt: img.title });
+      const images = [];
+      apiRes.data.data.forEach((img) => {
+        images.push({ imgURL: img.link, pageURL: `https://imgur.com/${img.id}`, alt: img.title });
+      });
+      res.json({ results: images });
     } else {
       res.json({ error: 'Your search yieled no results.' });
     }
   }).catch((error) => {
-    console.log(error);
+    console.log(error); // eslint-disable-line no-console
     res.json({ error: 'Couldn\'t fulfill your request. Try again or use different search terms / offset. ' });
   });
 });
 
 app.get('/api/latest/', (req, res) => {
-  res.json({ term: '', when: '' });
+  try {
+    DB.sort({ when: -1 }, (docs) => {
+      const searches = [];
+      if (docs) {
+        docs.forEach((search) => {
+          searches.push(search.term);
+        });
+        res.json({ latest_searches: searches });
+      } else {
+        res.json({ latest_searches: 'No searches found.' });
+      }
+    });
+  } catch (error) {
+    console.log(error); // eslint-disable-line no-console
+    res.json({ error: 'Couldn\'t fulfill your request. Try again or use different search terms / offset. ' });
+  }
 });
-
 
 app.get('*', (req, res) => {
   res.render('404', {});
 });
+
+DB.setURI(mongoURI);
 
 const server = app.listen(port);
 
