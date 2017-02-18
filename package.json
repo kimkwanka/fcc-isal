@@ -1,0 +1,25 @@
+{
+  "name": "fcc-isal",
+  "version": "1.0.0",
+  "description": "Image Search Abstraction Layer for FCC",
+  "main": "server.js",
+  "scripts": {
+    "test": "mocha -R nyan ./server-test.js"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.14.1",
+    "pug": "^2.0.0-beta11",
+    "stylus": "^0.54.5"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "eslint": "^3.15.0",
+    "eslint-config-airbnb": "^14.1.0",
+    "eslint-plugin-import": "^2.2.0",
+    "eslint-plugin-jsx-a11y": "^4.0.0",
+    "eslint-plugin-react": "^6.10.0",
+    "mocha": "^3.2.0"
+  }
+}

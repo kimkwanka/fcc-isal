@@ -1,0 +1,38 @@
+$footerHeight = 80px
+$accentBGColor = #eee
+
+*
+    box-sizing border-box
+
+body,
+html
+    height 100%
+    margin 0
+
+.stickyFooterWrapper
+    min-height 100%
+    margin-bottom -($footerHeight)
+    &:after
+        content: ""
+        display: block
+        height $footerHeight
+
+header
+    background $accentBGColor
+
+footer
+    position relative
+    height $footerHeight
+    background $accentBGColor
+    text-align center
+    a
+        position absolute
+        top 25px
+        left 50%
+        transform translate(-50%)
+
+@media screen and (max-width: 639px)
+    header
+        .row 
+            .column.column-50
+                flex: none
